@@ -1,0 +1,19 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "eleconar-test",
+	"main": "worker-entry.ts",
+	"compatibility_date": "2025-04-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"durable_objects": {
+		"bindings": [
+			{ "name": "COMPANY_STORE", "class_name": "CompanyStore" }
+		]
+	},
+	"migrations": [
+		{ "tag": "v1", "new_sqlite_classes": ["CompanyStore"] }
+	]
+}
