@@ -19,8 +19,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Eleconar",
-  description: "Monitoreo",
+  title: "ELECONAR | MONELC",
+  description: "Monitor de maquinas MONELC",
 };
 
 export default function RootLayout({

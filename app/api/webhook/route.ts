@@ -7,11 +7,12 @@ export async function POST(req: NextRequest) {
 	try {
 		const body = (await req.json()) as Record<string, unknown>;
 		const { deviceId, value, status } = body;
-		const namecompany = normalizeCompanySlug(body.namecompany);
+		const rawCompany = body.namecompany ?? body.nameCompany;
+		const namecompany = normalizeCompanySlug(rawCompany);
 
 		if (!namecompany) {
 			return NextResponse.json(
-				{ error: "Missing or invalid namecompany (expected lowercase slug)" },
+				{ error: "Missing or invalid company name (use namecompany or nameCompany)" },
 				{ status: 400 },
 			);
 		}

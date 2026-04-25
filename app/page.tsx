@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Landing() {
@@ -10,14 +11,15 @@ export default function Landing() {
 				<div className="bg-blob bg-blob-3" />
 			</div>
 			<section className="landing-card">
-				<img src="/fonsecasa.png" alt="Fonseca SA" className="brand-logo" />
-				<h1 className="landing-title">Monitor de máquinas</h1>
+				<Image src="/eleconar.png" alt="ELECONAR" className="brand-logo" width={220} height={70} priority />
+				<h1 className="landing-title">Monitor de maquinas</h1>
+				<p className="landing-kicker">MONELC</p>
 				<p className="landing-subtitle">
-					Ingresá a <code>/tu-empresa</code> para ver los ESPs que están reportando.
+					Ingresa a <code>/tu-empresa</code> para ver los ELC que estan reportando.
 				</p>
 				<div className="landing-example">
-					<Link href="/fonseca" className="landing-link">/fonseca</Link>
-					<span className="landing-hint">— ejemplo</span>
+					<Link href="/elc" className="landing-link">/elc</Link>
+					<span className="landing-hint">- ejemplo</span>
 				</div>
 			</section>
 		</main>

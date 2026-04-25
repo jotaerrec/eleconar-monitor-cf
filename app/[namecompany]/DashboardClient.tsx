@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { DeviceData } from "@/worker/company-store";
 
@@ -47,7 +48,7 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 	}, [namecompany]);
 
 	const isOnline = (lastUpdate: number) => now - lastUpdate < FRESH_WINDOW_MS;
-	const companyLabel = namecompany.charAt(0).toUpperCase() + namecompany.slice(1);
+	const companyLabel = formatCompanyLabel(namecompany);
 
 	return (
 		<main className="dashboard-container">
@@ -60,21 +61,20 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 
 			<nav className="navbar-container">
 				<div className="navbar-brand">
-					<img src="/fonsecasa.png" alt="Fonseca SA" className="brand-logo" />
+					<Image src="/eleconar.png" alt="ELECONAR" className="brand-logo" width={220} height={56} priority />
 					<div className="brand-divider" />
 					<div className="brand-text">
 						<span className="brand-eyebrow">{companyLabel}</span>
-						<h1 className="brand-title">Monitor de Estado</h1>
-						<span className="brand-subtitle">Supervisión de máquinas en tiempo real</span>
+						<h1 className="brand-title">Monitor de maquinas</h1>
+						<span className="brand-subtitle">MONELC</span>
 					</div>
 				</div>
 				<div className="navbar-meta">
 					<div className={`connection-pill ${isConnected ? "is-online" : "is-offline"}`}>
 						<span className="connection-dot" />
-						{isConnected ? "En línea" : "Reconectando…"}
+						{isConnected ? "En linea" : "Reconectando..."}
 					</div>
 					<span className="navbar-clock">{new Date(now).toLocaleTimeString()}</span>
-					<img src="/eleconar.png" alt="Eleconar" className="partner-logo" />
 				</div>
 			</nav>
 
@@ -90,7 +90,7 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 								<header className="device-header">
 									<span className="device-id">{device.deviceId}</span>
 									<span className={`status-badge ${online ? "status-online" : "status-offline"}`}>
-										{online ? "En línea" : "Desconectado"}
+										{online ? "En linea" : "Desconectado"}
 									</span>
 								</header>
 
@@ -112,11 +112,11 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 
 								<footer className="device-footer">
 									<span className={`machine-state ${online ? "is-on" : "is-off"}`}>
-										{online ? "Máquina en marcha" : "Máquina parada"}
+										{online ? "Maquina en marcha" : "Maquina parada"}
 									</span>
 									<span className="last-update">
 										{online && <span className="live-indicator" />}
-										Última vez: {new Date(device.lastUpdate).toLocaleTimeString()}
+										Ultima vez: {new Date(device.lastUpdate).toLocaleTimeString()}
 									</span>
 								</footer>
 							</article>
@@ -147,11 +147,16 @@ function EmptyState({ namecompany }: { namecompany: string }) {
 			</svg>
 			<h2 className="empty-title">Esperando datos</h2>
 			<p className="empty-body">
-				Ningún ESP de <strong>{namecompany}</strong> está pegando todavía.
+				Ningun ELC de <strong>{formatCompanyLabel(namecompany)}</strong> esta reportando.
 			</p>
 			<code className="empty-code">
-				POST /api/webhook {"{"} deviceId, value, status, namecompany: &quot;{namecompany}&quot; {"}"}
+				POST /api/webhook {"{"} deviceId, value, status, nameCompany: &quot;{namecompany}&quot; {"}"}
 			</code>
 		</div>
 	);
+}
+
+function formatCompanyLabel(namecompany: string) {
+	if (namecompany === "elc") return "ELC";
+	return namecompany.replace(/-/g, " ").toUpperCase();
 }
