@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: monelc-postgres
+    environment:
+      POSTGRES_DB: monelc
+      POSTGRES_USER: monelc
+      POSTGRES_PASSWORD: monelc
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monelc -d monelc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+    container_name: monelc-app
+    environment:
+      DATABASE_URL: postgresql://monelc:monelc@postgres:5432/monelc
+      AUTH_SECRET: change-this-auth-secret
+      AUTH_COOKIE_SECURE: "false"
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

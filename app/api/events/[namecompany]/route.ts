@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCompanyStub, normalizeCompanySlug } from "@/lib/company";
+import { normalizeCompanySlug } from "@/lib/company";
+import { getCompanyDevices, waitForCompanyDevices } from "@/lib/device-store";
+import { getCurrentUser, userCanAccessCompany } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +13,21 @@ export async function GET(req: NextRequest, { params }: Params) {
 	if (!namecompany) {
 		return NextResponse.json({ error: "Invalid namecompany" }, { status: 400 });
 	}
+	const user = await getCurrentUser();
+	if (!user) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+	if (!(await userCanAccessCompany(namecompany, user))) {
+		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+	}
 
 	const url = new URL(req.url);
 	const initial = url.searchParams.get("initial") === "1";
+	const since = Number(url.searchParams.get("since"));
+	const sinceValue = Number.isFinite(since) ? since : null;
 
 	try {
-		const stub = await getCompanyStub(namecompany);
-		const data = initial ? await stub.snapshot() : await stub.wait();
+		const data = initial ? await getCompanyDevices(namecompany) : await waitForCompanyDevices(namecompany, sinceValue);
 
 		return NextResponse.json(data, {
 			headers: {

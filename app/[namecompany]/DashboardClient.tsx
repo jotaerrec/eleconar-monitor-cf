@@ -1,21 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { DeviceData } from "@/worker/company-store";
+import LogoutButton from "@/app/LogoutButton";
+import type { DeviceData } from "@/lib/devices";
 
 const FRESH_WINDOW_MS = 15_000;
 
 type Props = {
 	namecompany: string;
 	initialDevices: DeviceData[];
+	viewerEmail: string;
 };
 
-export default function DashboardClient({ namecompany, initialDevices }: Props) {
+export default function DashboardClient({ namecompany, initialDevices, viewerEmail }: Props) {
 	const [devices, setDevices] = useState<DeviceData[]>(initialDevices);
 	const [isConnected, setIsConnected] = useState(initialDevices.length > 0);
 	const [now, setNow] = useState(Date.now());
 	const mountedRef = useRef(true);
+	const latestUpdateRef = useRef(getLatestUpdate(initialDevices));
 
 	useEffect(() => {
 		mountedRef.current = true;
@@ -27,24 +31,31 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 	}, []);
 
 	useEffect(() => {
+		latestUpdateRef.current = getLatestUpdate(devices);
+	}, [devices]);
+
+	useEffect(() => {
 		async function poll() {
 			if (!mountedRef.current) return;
 			try {
-				const res = await fetch(`/api/events/${namecompany}?t=${Date.now()}`);
+				const res = await fetch(`/api/events/${namecompany}?since=${latestUpdateRef.current}&t=${Date.now()}`);
 				if (!res.ok) throw new Error(`HTTP ${res.status}`);
 				const data: DeviceData[] = await res.json();
 				if (!mountedRef.current) return;
 				setDevices(data);
 				setIsConnected(true);
-				poll();
+				void poll();
 			} catch (err) {
 				console.error("[poll] error:", err);
 				if (!mountedRef.current) return;
 				setIsConnected(false);
-				setTimeout(poll, 3000);
+				setTimeout(() => {
+					void poll();
+				}, 3000);
 			}
 		}
-		poll();
+
+		void poll();
 	}, [namecompany]);
 
 	const isOnline = (lastUpdate: number) => now - lastUpdate < FRESH_WINDOW_MS;
@@ -70,11 +81,14 @@ export default function DashboardClient({ namecompany, initialDevices }: Props) 
 					</div>
 				</div>
 				<div className="navbar-meta">
+					<Link href="/" className="nav-home-link">Inicio</Link>
+					<span className="viewer-pill">{viewerEmail}</span>
 					<div className={`connection-pill ${isConnected ? "is-online" : "is-offline"}`}>
 						<span className="connection-dot" />
 						{isConnected ? "En linea" : "Reconectando..."}
 					</div>
 					<span className="navbar-clock">{new Date(now).toLocaleTimeString()}</span>
+					<LogoutButton className="logout-button navbar-logout" />
 				</div>
 			</nav>
 
@@ -159,4 +173,8 @@ function EmptyState({ namecompany }: { namecompany: string }) {
 function formatCompanyLabel(namecompany: string) {
 	if (namecompany === "elc") return "ELC";
 	return namecompany.replace(/-/g, " ").toUpperCase();
+}
+
+function getLatestUpdate(devices: DeviceData[]) {
+	return devices.reduce((max, device) => Math.max(max, device.lastUpdate), 0);
 }

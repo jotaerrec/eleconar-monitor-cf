@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCompanyStub, normalizeCompanySlug } from "@/lib/company";
+import { normalizeCompanySlug } from "@/lib/company";
+import { upsertDevice } from "@/lib/device-store";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ error: "Missing deviceId" }, { status: 400 });
 		}
 
-		const stub = await getCompanyStub(namecompany);
-		await stub.update({
+		await upsertDevice(namecompany, {
 			deviceId,
 			value: typeof value === "number" ? value : 0,
 			status: typeof status === "string" ? status : "unknown",

@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MONELC
 
-## Getting Started
+Aplicacion Next.js para monitorear maquinas por empresa, con autenticacion propia y persistencia en PostgreSQL.
 
-First, run the development server:
+## Variables de entorno
+
+Copiar `.env.example` a `.env.local` para desarrollo fuera de Docker:
+
+```bash
+DATABASE_URL=postgresql://monelc:monelc@localhost:5432/monelc
+AUTH_SECRET=change-this-auth-secret
+AUTH_COOKIE_SECURE=false
+```
+
+## Correr local con Docker
+
+Levanta la app y PostgreSQL:
+
+```bash
+docker compose up --build
+```
+
+Servicios:
+
+- App: [http://localhost:3000](http://localhost:3000)
+- PostgreSQL: `localhost:5433`
+
+La app crea las tablas automaticamente al iniciar.
+
+## Correr local sin Docker
+
+1. Tener PostgreSQL disponible y configurar `DATABASE_URL`.
+2. Instalar dependencias:
+
+```bash
+npm ci
+```
+
+3. Levantar desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Produccion en VPS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Con 2 GB de RAM conviene usar una sola instancia de PostgreSQL compartida entre apps y separar por base de datos o usuarios.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Pasos recomendados para esta app:
 
-## Learn More
+1. Crear una base y usuario dedicados en tu PostgreSQL compartido.
+2. Configurar `DATABASE_URL` y `AUTH_SECRET`.
+3. Construir la imagen.
+4. Correr el contenedor de la app apuntando al PostgreSQL existente.
 
-To learn more about Next.js, take a look at the following resources:
+En produccion deja `AUTH_COOKIE_SECURE=true` o simplemente no la definas si vas detras de HTTPS.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Ejemplo:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+docker build -t monelc-app .
+docker run -d \
+  --name monelc-app \
+  -p 3000:3000 \
+  -e DATABASE_URL='postgresql://monelc:tu_password@tu_host_postgres:5432/monelc' \
+  -e AUTH_SECRET='cambia-este-secreto' \
+  -e AUTH_COOKIE_SECURE='true' \
+  --restart unless-stopped \
+  monelc-app
+```
 
-## Deploy on Vercel
+## Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `POST /api/webhook`
+- `GET /api/events/[namecompany]`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
