@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: monelc-app
+    network_mode: host
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
+      NODE_ENV: production
+      PORT: 3000
+    restart: unless-stopped
